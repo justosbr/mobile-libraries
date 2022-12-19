@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'device.dart';
 import 'golden_test_adapter.dart';
 import 'interactions.dart';
 import 'pumps.dart';
@@ -14,6 +15,7 @@ GoldenTestAdapter _goldenTestAdapter = defaultGoldenTestAdapter;
 /// Golden test adapter used to interface with Flutter's test framework.
 /// Overriding this makes it easier to unit-test Alchemist.
 GoldenTestAdapter get goldenTestAdapter => _goldenTestAdapter;
+
 set goldenTestAdapter(GoldenTestAdapter value) => _goldenTestAdapter = value;
 
 /// {@template golden_test_runner}
@@ -38,6 +40,7 @@ abstract class GoldenTestRunner {
     PumpAction pumpBeforeTest = onlyPumpAndSettle,
     PumpWidget pumpWidget = onlyPumpWidget,
     Interaction? whilePerforming,
+    List<Device> devices = const [],
   });
 }
 
@@ -64,10 +67,11 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
     PumpAction pumpBeforeTest = onlyPumpAndSettle,
     PumpWidget pumpWidget = onlyPumpWidget,
     Interaction? whilePerforming,
+    List<Device> devices = const [],
   }) async {
     assert(
-    goldenPath is String || goldenPath is Uri,
-    'Golden path must be a String or Uri.',
+      goldenPath is String || goldenPath is Uri,
+      'Golden path must be a String or Uri.',
     );
 
     final childKey = FlutterGoldenTestAdapter.childKey;
@@ -86,6 +90,7 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
         pumpBeforeTest: pumpBeforeTest,
         pumpWidget: pumpWidget,
         widget: widget,
+        devices: devices,
       );
 
       AsyncCallback? cleanup;
@@ -97,16 +102,15 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
 
       final toMatch = obscureText
           ? goldenTestAdapter.getBlockedTextImage(
-        finder: finder,
-        tester: tester,
-      )
+              finder: finder,
+              tester: tester,
+            )
           : finder;
 
       try {
         await goldenTestAdapter.withForceUpdateGoldenFiles(
           forceUpdate: forceUpdate,
-          callback:
-          goldenTestAdapter.goldenFileExpectation(toMatch, goldenPath),
+          callback: goldenTestAdapter.goldenFileExpectation(toMatch, goldenPath),
         );
         await cleanup?.call();
       } on TestFailure {

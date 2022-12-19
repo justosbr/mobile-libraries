@@ -21,6 +21,7 @@ GoldenTestRunner _goldenTestRunner = defaultGoldenTestRunner;
 
 /// Golden test runner. Overriding this makes it easier to unit-test Alchemist.
 GoldenTestRunner get goldenTestRunner => _goldenTestRunner;
+
 set goldenTestRunner(GoldenTestRunner value) => _goldenTestRunner = value;
 
 /// An internal function that executes all necessary setup steps required to run
@@ -42,15 +43,13 @@ Future<void> _setUpGoldenTests() async {
 Future<void> loadFonts() async {
   final bundle = rootBundle;
   final fontManifestString = await bundle.loadString('FontManifest.json');
-  final fontManifest = (json.decode(fontManifestString) as List<dynamic>)
-      .map((dynamic x) => x as Map<String, dynamic>);
+  final fontManifest = (json.decode(fontManifestString) as List<dynamic>).map((dynamic x) => x as Map<String, dynamic>);
 
   for (final entry in fontManifest) {
     final family = (entry['family'] as String).stripFontFamilyPackageName();
 
     final fontAssets = [
-      for (final fontAssetEntry in entry['fonts'] as List<dynamic>)
-        (fontAssetEntry as Map<String, dynamic>)['asset'] as String,
+      for (final fontAssetEntry in entry['fonts'] as List<dynamic>) (fontAssetEntry as Map<String, dynamic>)['asset'] as String,
     ];
 
     final loader = FontLoader(family);
@@ -135,25 +134,26 @@ Future<void> loadFonts() async {
 /// [whilePerforming] argument useless.
 @isTest
 Future<void> goldenTest(
-    String description, {
-      required String fileName,
-      bool skip = false,
-      List<String> tags = const ['golden'],
-      double textScaleFactor = 1.0,
-      BoxConstraints constraints = const BoxConstraints(),
-      PumpAction pumpBeforeTest = onlyPumpAndSettle,
-      PumpWidget pumpWidget = onlyPumpWidget,
-      Interaction? whilePerforming,
-      required ValueGetter<Widget> builder,
-    }) async {
+  String description, {
+  required String fileName,
+  bool skip = false,
+  bool? forceUpdateGoldenFiles,
+  List<String> tags = const ['golden'],
+  double textScaleFactor = 1.0,
+  BoxConstraints constraints = const BoxConstraints(),
+  PumpAction pumpBeforeTest = onlyPumpAndSettle,
+  PumpWidget pumpWidget = onlyPumpWidget,
+  Interaction? whilePerforming,
+  required ValueGetter<Widget> builder,
+}) async {
   if (skip) return;
 
   assert(
-  !fileName.endsWith('.png'),
-  'Golden tests file names should not include file type extension.\n\n'
-      'This logic should be handled in the [filePathResolver] function of the '
-      '[PlatformGoldensConfig] and [CiGoldensConfig] classes in '
-      '[AurumConfig].',
+    !fileName.endsWith('.png'),
+    'Golden tests file names should not include file type extension.\n\n'
+    'This logic should be handled in the [filePathResolver] function of the '
+    '[PlatformGoldensConfig] and [CiGoldensConfig] classes in '
+    '[AurumConfig].',
   );
 
   final config = AurumConfig.current();
@@ -168,7 +168,7 @@ Future<void> goldenTest(
 
   await goldenTestAdapter.testWidgets(
     description,
-        (tester) async {
+    (tester) async {
       final variantConfig = variant.currentConfig;
       await goldenTestRunner.run(
         tester: tester,
@@ -179,7 +179,7 @@ Future<void> goldenTest(
         widget: builder(),
         globalConfigTheme: config.theme,
         variantConfigTheme: variantConfig.theme,
-        forceUpdate: config.forceUpdateGoldenFiles,
+        forceUpdate: forceUpdateGoldenFiles ?? config.forceUpdateGoldenFiles,
         obscureText: variantConfig.obscureText,
         renderShadows: variantConfig.renderShadows,
         textScaleFactor: textScaleFactor,
@@ -187,6 +187,7 @@ Future<void> goldenTest(
         pumpBeforeTest: pumpBeforeTest,
         pumpWidget: pumpWidget,
         whilePerforming: whilePerforming,
+        devices: config.defaultDevices,
       );
     },
     tags: tags,

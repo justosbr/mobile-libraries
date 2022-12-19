@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'blocked_text_image.dart';
+import 'device.dart';
 import 'pumps.dart';
 import 'utilities.dart';
 
@@ -165,6 +166,7 @@ abstract class GoldenTestAdapter {
     required PumpAction pumpBeforeTest,
     required PumpWidget pumpWidget,
     required Widget widget,
+    required List<Device> devices,
   });
 
   /// Generates an image of the widget at the given [finder] with all text
@@ -227,6 +229,7 @@ class FlutterGoldenTestAdapter extends GoldenTestAdapter {
     required PumpAction pumpBeforeTest,
     required PumpWidget pumpWidget,
     required Widget widget,
+    required List<Device> devices,
   }) async {
     tester.binding.window.devicePixelRatioTestValue = 1.0;
     tester.binding.window.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
@@ -237,6 +240,7 @@ class FlutterGoldenTestAdapter extends GoldenTestAdapter {
         obscureFont: obscureFont,
         globalConfigTheme: globalConfigTheme,
         variantConfigTheme: variantConfigTheme,
+        devices: devices,
         child: DefaultAssetBundle(
           bundle: TestAssetBundle(),
           child: Material(
@@ -317,6 +321,7 @@ class FlutterGoldenTestWrapper extends StatelessWidget {
     this.globalConfigTheme,
     this.variantConfigTheme,
     this.obscureFont = false,
+    required this.devices,
     required this.child,
   }) : super(key: key);
 
@@ -341,6 +346,8 @@ class FlutterGoldenTestWrapper extends StatelessWidget {
   ///
   /// See [MaterialApp.home] for more details.
   final Widget child;
+
+  final List<Device> devices;
 
   /// Resolves the appropriate theme to use for the current test.
   ///
@@ -379,8 +386,11 @@ class FlutterGoldenTestWrapper extends StatelessWidget {
       child: _LocalizationWrapper(
         child: Theme(
           data: _resolveThemeOf(context),
-          child: _NavigatorWrapper(
-            child: child,
+          child: DeviceWrapper(
+            devices: devices,
+            child: _NavigatorWrapper(
+              child: child,
+            ),
           ),
         ),
       ),
@@ -438,5 +448,21 @@ class _NavigatorWrapper extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class DeviceWrapper extends StatelessWidget {
+  final List<Device> devices;
+  final Widget child;
+
+  const DeviceWrapper({
+    super.key,
+    required this.devices,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return child;
   }
 }

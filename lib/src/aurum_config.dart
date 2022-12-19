@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aurum/src/device.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
@@ -9,11 +10,11 @@ import 'host_platform.dart';
 /// [fileName]. This function's return value should include the `.png`
 /// extension.
 typedef FilePathResolver = FutureOr<String> Function(
-    String fileName,
-    String environmentName,
-    );
+  String fileName,
+  String environmentName,
+);
 
-/// {@template alchemist_config}
+/// {@template aurum_config}
 /// A configuration object that contains settings used by Alchemist for
 /// customizing the behavior of all golden tests.
 ///
@@ -65,19 +66,21 @@ typedef FilePathResolver = FutureOr<String> Function(
 /// [theme] (and [ciGoldensConfig] theme) will be ignored.
 /// {@endtemplate}
 class AurumConfig extends Equatable {
-  /// {@macro alchemist_config}
+  /// {@macro aurum_config}
   const AurumConfig({
     bool? forceUpdateGoldenFiles,
     ThemeData? theme,
     PlatformGoldensConfig? platformGoldensConfig,
     CiGoldensConfig? ciGoldensConfig,
+    List<Device>? defaultDevices,
   })  : _forceUpdateGoldenFiles = forceUpdateGoldenFiles,
         _theme = theme,
         _platformGoldensConfig = platformGoldensConfig,
-        _ciGoldensConfig = ciGoldensConfig;
+        _ciGoldensConfig = ciGoldensConfig,
+        _defaultDevices = defaultDevices;
 
   /// The instance of the [AurumConfig] in the current zone used by the
-  /// `alchemist` package.
+  /// `aurum` package.
   ///
   /// If no [AurumConfig] is set, the default config is returned.
   factory AurumConfig.current() {
@@ -91,7 +94,7 @@ class AurumConfig extends Equatable {
   /// Exposed for internal testing. Do not use this explicitly.
   @protected
   @visibleForTesting
-  static const currentConfigKey = #alchemist.config;
+  static const currentConfigKey = #aurum.config;
 
   /// Runs the given function [run] in a [Zone] where the default
   /// [AurumConfig] is set to [config].
@@ -187,17 +190,21 @@ class AurumConfig extends Equatable {
   ///
   /// This contains various settings used by [goldenTest] to determine whether
   /// and how to run golden tests intended to be run locally.
-  PlatformGoldensConfig get platformGoldensConfig =>
-      _platformGoldensConfig ?? const PlatformGoldensConfig();
+  PlatformGoldensConfig get platformGoldensConfig => _platformGoldensConfig ?? const PlatformGoldensConfig();
   final PlatformGoldensConfig? _platformGoldensConfig;
 
   /// The configuration for golden tests intended to be run in CI.
   ///
   /// This contains various settings used by [goldenTest] to determine whether
   /// and how to run golden tests intended to be run in a CI environment.
-  CiGoldensConfig get ciGoldensConfig =>
-      _ciGoldensConfig ?? const CiGoldensConfig();
+  CiGoldensConfig get ciGoldensConfig => _ciGoldensConfig ?? const CiGoldensConfig();
   final CiGoldensConfig? _ciGoldensConfig;
+
+  /// The configuration for device golden tests
+  ///
+  /// The default devices will be used for [GoldenDeviceTestScenarios]
+  List<Device> get defaultDevices => _defaultDevices ?? const [Device.iphoneSE, Device.phone, Device.iphone11];
+  final List<Device>? _defaultDevices;
 
   /// Creates a copy of this [AurumConfig] and replaces the given fields.
   AurumConfig copyWith({
@@ -205,12 +212,14 @@ class AurumConfig extends Equatable {
     ThemeData? theme,
     PlatformGoldensConfig? platformGoldensConfig,
     CiGoldensConfig? ciGoldensConfig,
+    List<Device>? defaultDevices,
   }) {
     return AurumConfig(
       forceUpdateGoldenFiles: forceUpdateGoldenFiles ?? _forceUpdateGoldenFiles,
       theme: theme ?? _theme,
       platformGoldensConfig: platformGoldensConfig ?? _platformGoldensConfig,
       ciGoldensConfig: ciGoldensConfig ?? _ciGoldensConfig,
+      defaultDevices: defaultDevices ?? _defaultDevices,
     );
   }
 
@@ -225,19 +234,20 @@ class AurumConfig extends Equatable {
     return copyWith(
       forceUpdateGoldenFiles: other?._forceUpdateGoldenFiles,
       theme: other?._theme,
-      platformGoldensConfig:
-      platformGoldensConfig.merge(other?._platformGoldensConfig),
+      platformGoldensConfig: platformGoldensConfig.merge(other?._platformGoldensConfig),
       ciGoldensConfig: ciGoldensConfig.merge(other?._ciGoldensConfig),
+      defaultDevices: other?._defaultDevices,
     );
   }
 
   @override
   List<Object?> get props => [
-    forceUpdateGoldenFiles,
-    theme,
-    platformGoldensConfig,
-    ciGoldensConfig,
-  ];
+        forceUpdateGoldenFiles,
+        theme,
+        platformGoldensConfig,
+        ciGoldensConfig,
+        defaultDevices,
+      ];
 }
 
 /// {@template goldens_config}
@@ -310,9 +320,9 @@ abstract class GoldensConfig extends Equatable {
   ///
   /// See [filePathResolver] for more details.
   static FutureOr<String> _defaultFilePathResolver(
-      String fileName,
-      String environmentName,
-      ) {
+    String fileName,
+    String environmentName,
+  ) {
     return 'goldens/${environmentName.toLowerCase()}/$fileName.png';
   }
 
@@ -323,8 +333,7 @@ abstract class GoldensConfig extends Equatable {
   /// This function is used by [goldenTest] to determine where the golden file
   /// should be located. By default, the golden file is located in the
   /// `goldens/<environmentName>/` directory relative to the test file.
-  FilePathResolver get filePathResolver =>
-      _filePathResolver ?? _defaultFilePathResolver;
+  FilePathResolver get filePathResolver => _filePathResolver ?? _defaultFilePathResolver;
   final FilePathResolver? _filePathResolver;
 
   /// The [ThemeData] to use when generating golden tests.
@@ -354,12 +363,12 @@ abstract class GoldensConfig extends Equatable {
 
   @override
   List<Object?> get props => [
-    obscureText,
-    enabled,
-    filePathResolver,
-    theme,
-    renderShadows,
-  ];
+        obscureText,
+        enabled,
+        filePathResolver,
+        theme,
+        renderShadows,
+      ];
 }
 
 /// {@template platform_goldens_config}
@@ -392,12 +401,12 @@ class PlatformGoldensConfig extends GoldensConfig {
     ThemeData? theme,
   })  : _platforms = platforms,
         super(
-        enabled: enabled,
-        obscureText: obscureText,
-        renderShadows: renderShadows,
-        filePathResolver: filePathResolver,
-        theme: theme,
-      );
+          enabled: enabled,
+          obscureText: obscureText,
+          renderShadows: renderShadows,
+          filePathResolver: filePathResolver,
+          theme: theme,
+        );
 
   @override
   String get environmentName => HostPlatform.current().operatingSystem;
@@ -453,9 +462,9 @@ class PlatformGoldensConfig extends GoldensConfig {
 
   @override
   List<Object?> get props => [
-    ...super.props,
-    platforms,
-  ];
+        ...super.props,
+        platforms,
+      ];
 }
 
 /// {@template ci_goldens_config}
@@ -485,12 +494,12 @@ class CiGoldensConfig extends GoldensConfig {
     FilePathResolver? filePathResolver,
     ThemeData? theme,
   }) : super(
-    enabled: enabled,
-    obscureText: obscureText,
-    renderShadows: renderShadows,
-    filePathResolver: filePathResolver,
-    theme: theme,
-  );
+          enabled: enabled,
+          obscureText: obscureText,
+          renderShadows: renderShadows,
+          filePathResolver: filePathResolver,
+          theme: theme,
+        );
 
   @override
   String get environmentName => 'CI';
