@@ -6,11 +6,13 @@ class RedButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     required this.child,
+    this.createText,
   });
 
   final VoidCallback? onPressed;
   final Widget? icon;
   final Widget child;
+  final String Function()? createText;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +25,7 @@ class RedButton extends StatelessWidget {
         style: style,
         onPressed: onPressed,
         icon: icon!,
-        label: child,
+        label: createText != null ? Text(createText!.call()) : child,
       );
     } else {
       return ElevatedButton(

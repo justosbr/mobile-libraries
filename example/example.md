@@ -19,7 +19,7 @@ Every `goldenTest` commonly contains a group of scenarios related to each other 
 This example shows a basic golden test for `ListTile`s that makes use of some of the more advanced features of the `goldenTest` API to control the output of the test.
 
 ```dart
-import 'package:alchemist/alchemist.dart';
+import 'package:aurum/aurum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -75,5 +75,5 @@ We recommend adding the following lines to your project's `.gitignore` file to p
 **/goldens/windows
 ```
 
-[setup-guide]: https://github.com/Betterment/alchemist/blob/main/RECOMMENDED_SETUP_GUIDE.md
-[example_dir]: https://github.com/Betterment/alchemist/tree/main/example
+[setup-guide]: https://github.com/Betterment/aurum/blob/main/RECOMMENDED_SETUP_GUIDE.md
+[example_dir]: https://github.com/Betterment/aurum/tree/main/example
