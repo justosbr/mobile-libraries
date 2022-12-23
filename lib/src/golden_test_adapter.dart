@@ -293,10 +293,11 @@ class FlutterGoldenTestAdapter extends GoldenTestAdapter {
       renderObject = renderObject.parent! as RenderObject;
     }
     final layer = renderObject.debugLayer! as OffsetLayer;
-    paintingContextBuilder(
+    final paintingContext = paintingContextBuilder(
       layer,
       renderObject.paintBounds,
-    ).paintSingleChild(renderObject);
+    );
+    paintingContext.paintSingleChild(renderObject);
 
     return layer.toImage(renderObject.paintBounds);
   }

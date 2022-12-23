@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:ui' as ui;
 
-import 'package:aurum/src/aurum_config.dart';
-import 'package:aurum/src/aurum_test_variant.dart';
+import 'package:aurum/aurum.dart';
 import 'package:aurum/src/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -10,10 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meta/meta.dart';
 
+import 'aurum_test_variant.dart';
 import 'golden_test_runner.dart';
-import 'host_platform.dart';
-import 'interactions.dart';
-import 'pumps.dart';
 
 /// Default golden test runner which uses the flutter test framework.
 const defaultGoldenTestRunner = FlutterGoldenTestRunner();
@@ -193,4 +190,8 @@ Future<void> goldenTest(
     tags: tags,
     variant: variant,
   );
+}
+
+bool isGoldenTest(BuildContext context) {
+  return DefaultAssetBundle.of(context) is TestAssetBundle;
 }
