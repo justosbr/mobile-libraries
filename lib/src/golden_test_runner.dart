@@ -1,3 +1,4 @@
+import 'package:aurum/src/local_golden_file_comparator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,6 +41,7 @@ abstract class GoldenTestRunner {
     PumpAction pumpBeforeTest = onlyPumpAndSettle,
     PumpWidget pumpWidget = onlyPumpWidget,
     Interaction? whilePerforming,
+    double threshold,
     List<Device> devices = const [],
   });
 }
@@ -67,6 +69,7 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
     PumpAction pumpBeforeTest = onlyPumpAndSettle,
     PumpWidget pumpWidget = onlyPumpWidget,
     Interaction? whilePerforming,
+    double threshold = 0.00,
     List<Device> devices = const [],
   }) async {
     assert(
@@ -74,6 +77,7 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
       'Golden path must be a String or Uri.',
     );
 
+    _setUpComparator(threshold);
     final childKey = FlutterGoldenTestAdapter.childKey;
 
     final mementoDebugDisableShadows = debugDisableShadows;
@@ -122,6 +126,25 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
       await tester.binding.setSurfaceSize(null);
       tester.binding.window.clearPhysicalSizeTestValue();
       tester.binding.window.clearDevicePixelRatioTestValue();
+    }
+  }
+
+  void _setUpComparator(double threshold) {
+    if (goldenFileComparator is LocalFileComparator) {
+      final testUrl = (goldenFileComparator as LocalFileComparator).basedir;
+
+      // flutter_test's LocalFileComparator expects the test's URI to be passed
+      // as an argument, but it only uses it to parse the baseDir in order to
+      // obtain the directory where the golden tests will be placed.
+      // As such, we use the default `testUrl`, which is only the `baseDir` and
+      // append a generically named `test.dart` so that the `baseDir` is
+      // properly extracted.
+      goldenFileComparator = LocalGoldenFileComparator(Uri.parse('$testUrl/test.dart'), threshold);
+    } else {
+      throw Exception(
+        'Expected `goldenFileComparator` to be of type `LocalFileComparator`, '
+        'but it is of type `${goldenFileComparator.runtimeType}`',
+      );
     }
   }
 }

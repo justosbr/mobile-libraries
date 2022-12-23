@@ -73,11 +73,13 @@ class AurumConfig extends Equatable {
     PlatformGoldensConfig? platformGoldensConfig,
     CiGoldensConfig? ciGoldensConfig,
     List<Device>? defaultDevices,
+    double? threshold,
   })  : _forceUpdateGoldenFiles = forceUpdateGoldenFiles,
         _theme = theme,
         _platformGoldensConfig = platformGoldensConfig,
         _ciGoldensConfig = ciGoldensConfig,
-        _defaultDevices = defaultDevices;
+        _defaultDevices = defaultDevices,
+        _threshold = threshold;
 
   /// The instance of the [AurumConfig] in the current zone used by the
   /// `aurum` package.
@@ -206,6 +208,9 @@ class AurumConfig extends Equatable {
   List<Device> get defaultDevices => _defaultDevices ?? const [Device.iphoneSE, Device.phone, Device.iphone11];
   final List<Device>? _defaultDevices;
 
+  double get threshold => _threshold ?? 0.00;
+  final double? _threshold;
+
   /// Creates a copy of this [AurumConfig] and replaces the given fields.
   AurumConfig copyWith({
     bool? forceUpdateGoldenFiles,
@@ -213,6 +218,7 @@ class AurumConfig extends Equatable {
     PlatformGoldensConfig? platformGoldensConfig,
     CiGoldensConfig? ciGoldensConfig,
     List<Device>? defaultDevices,
+    double? threshold,
   }) {
     return AurumConfig(
       forceUpdateGoldenFiles: forceUpdateGoldenFiles ?? _forceUpdateGoldenFiles,
@@ -220,6 +226,7 @@ class AurumConfig extends Equatable {
       platformGoldensConfig: platformGoldensConfig ?? _platformGoldensConfig,
       ciGoldensConfig: ciGoldensConfig ?? _ciGoldensConfig,
       defaultDevices: defaultDevices ?? _defaultDevices,
+      threshold: threshold ?? _threshold,
     );
   }
 
@@ -237,6 +244,7 @@ class AurumConfig extends Equatable {
       platformGoldensConfig: platformGoldensConfig.merge(other?._platformGoldensConfig),
       ciGoldensConfig: ciGoldensConfig.merge(other?._ciGoldensConfig),
       defaultDevices: other?._defaultDevices,
+      threshold: other?._threshold,
     );
   }
 

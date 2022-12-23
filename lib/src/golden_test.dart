@@ -184,6 +184,7 @@ Future<void> goldenTest(
         pumpBeforeTest: pumpBeforeTest,
         pumpWidget: pumpWidget,
         whilePerforming: whilePerforming,
+        threshold: config.threshold,
         devices: config.defaultDevices,
       );
     },
