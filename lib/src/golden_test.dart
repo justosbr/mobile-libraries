@@ -141,22 +141,22 @@ Future<void> goldenTest(
   PumpAction pumpBeforeTest = onlyPumpAndSettle,
   PumpWidget pumpWidget = onlyPumpWidget,
   Interaction? whilePerforming,
-  required ValueGetter<Widget> builder,
+  required Widget test,
 }) async {
   if (skip) return;
 
   assert(
-    !fileName.endsWith('.png'),
-    'Golden tests file names should not include file type extension.\n\n'
-    'This logic should be handled in the [filePathResolver] function of the '
-    '[PlatformGoldensConfig] and [CiGoldensConfig] classes in '
-    '[AurumConfig].',
+  !fileName.endsWith('.png'),
+  'Golden tests file names should not include file type extension.\n\n'
+      'This logic should be handled in the [filePathResolver] function of the '
+      '[PlatformGoldensConfig] and [CiGoldensConfig] classes in '
+      '[AurumConfig].',
   );
 
   final config = AurumConfig.current();
 
   final currentPlatform = HostPlatform.current();
-  final variant = AurumTestVariant(
+  final platformVariant = AurumTestVariant(
     config: config,
     currentPlatform: currentPlatform,
   );
@@ -165,15 +165,15 @@ Future<void> goldenTest(
 
   await goldenTestAdapter.testWidgets(
     description,
-    (tester) async {
-      final variantConfig = variant.currentConfig;
+        (tester) async {
+      final variantConfig = platformVariant.currentConfig;
       await goldenTestRunner.run(
         tester: tester,
         goldenPath: await variantConfig.filePathResolver(
           fileName,
           variantConfig.environmentName,
         ),
-        widget: builder(),
+        widget: test,
         globalConfigTheme: config.theme,
         variantConfigTheme: variantConfig.theme,
         forceUpdate: forceUpdateGoldenFiles ?? config.forceUpdateGoldenFiles,
@@ -189,10 +189,9 @@ Future<void> goldenTest(
       );
     },
     tags: tags,
-    variant: variant,
+    variant: platformVariant,
   );
 }
-
 bool isGoldenTest(BuildContext context) {
   return DefaultAssetBundle.of(context) is TestAssetBundle;
 }

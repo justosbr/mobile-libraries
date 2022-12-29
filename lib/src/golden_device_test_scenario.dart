@@ -60,7 +60,7 @@ class GoldenDeviceGroupScenario extends StatelessWidget {
   }
 }
 
-class GoldenDeviceScenario extends StatelessWidget {
+class GoldenDeviceScenario extends StatefulWidget {
   const GoldenDeviceScenario({
     super.key,
     required this.widget,
@@ -75,36 +75,61 @@ class GoldenDeviceScenario extends StatelessWidget {
   final List<Device>? devices;
 
   @override
+  State<GoldenDeviceScenario> createState() => _GoldenDeviceScenarioState();
+}
+
+class _GoldenDeviceScenarioState extends State<GoldenDeviceScenario> {
+  Widget? _built;
+
+  @override
+  void initState() {
+    super.initState();
+    _setUp();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final devices = this.devices ??
+    if (_built == null) {
+      return const SizedBox(
+        width: 1,
+        height: 1,
+      );
+    }
+
+    final devices = widget.devices ??
         context.findAncestorWidgetOfExactType<GoldenDeviceGroupScenario>()?._overrideDevices ??
         context.findAncestorWidgetOfExactType<DeviceWrapper>()!.devices;
 
-    final child = Row(
+    return Row(
         children: devices
             .map((e) => _DeviceTestWidget(
                   device: e,
-                  widget: widget,
                   name: _createName(e),
+                  child: _built!,
                 ))
             .toList());
-
-    return setUp != null ? SetUpWrapWidget(setUp: setUp!, child: child) : child;
   }
 
   String _createName(Device device) {
-    return name == null ? device.name : '$name - ${device.name}';
+    return widget.name == null ? device.name : '${widget.name} - ${device.name}';
+  }
+
+  void _setUp() async {
+    await widget.setUp?.call();
+    setState(() {
+      _built = widget.widget();
+    });
   }
 }
 
 class _DeviceTestWidget extends StatelessWidget {
   final String name;
   final Device device;
-  final ValueGetter<Widget> widget;
+  final Widget child;
 
   const _DeviceTestWidget({
     required this.device,
-    required this.widget,
+    required this.child,
     required this.name,
   });
 
@@ -136,7 +161,7 @@ class _DeviceTestWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              _DeviceMediaQueryWrapper(device: device, widget: widget),
+              _DeviceMediaQueryWrapper(device: device, child: child),
             ],
           ),
         ),
@@ -148,11 +173,11 @@ class _DeviceTestWidget extends StatelessWidget {
 class _DeviceMediaQueryWrapper extends StatelessWidget {
   const _DeviceMediaQueryWrapper({
     required this.device,
-    required this.widget,
+    required this.child,
   });
 
   final Device device;
-  final ValueGetter<Widget> widget;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +195,7 @@ class _DeviceMediaQueryWrapper extends StatelessWidget {
       child: SizedBox(
         width: device.size.width,
         height: device.size.height,
-        child: widget(),
+        child: child,
       ),
     );
   }

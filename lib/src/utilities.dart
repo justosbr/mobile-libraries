@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ typedef CustomPump = Future<void> Function(WidgetTester);
 typedef WidgetWrapper = Widget Function(Widget);
 
 /// Hook for running arbitrary behavior for a particular scenario
-typedef SetUp = Future<void> Function();
+typedef SetUp = FutureOr<void> Function();
 
 /// Extensions on an [Iterable] of [TestGesture] for convenience.
 ///
@@ -197,28 +198,4 @@ class TestAssetBundle extends CachingAssetBundle {
 
   @override
   Future<ByteData> load(String key) async => rootBundle.load(key);
-}
-
-class SetUpWrapWidget extends StatelessWidget {
-  final SetUp setUp;
-  final Widget child;
-
-  const SetUpWrapWidget({
-    super.key,
-    required this.setUp,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: setUp(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return child;
-        }
-        return const CircularProgressIndicator();
-      },
-    );
-  }
 }
