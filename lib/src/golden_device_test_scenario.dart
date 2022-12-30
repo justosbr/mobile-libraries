@@ -46,17 +46,25 @@ class GoldenDeviceGroupScenario extends StatelessWidget {
   }
 
   Size _requiredWidgetSize(List<Device> devices) {
-    final width = devices.map((e) => _getScenarioSize(e).width).reduce((pw, cw) => pw + cw);
-    final height = devices.map((e) => _getScenarioSize(e).height).reduce(max) * children.length;
+    final width = children
+        .map((child) => devices.map((e) => _getScenarioSize(_getDeviceSize(child, e)).width).reduce((pw, cw) => pw + cw))
+        .reduce(max);
+    final height = children
+        .map((child) => devices.map((e) => _getScenarioSize(_getDeviceSize(child, e)).height).reduce(max))
+        .reduce((ph, ch) => ph + ch);
     return Size(width, height);
   }
 
-  Size _getScenarioSize(Device device) {
+  Size _getDeviceSize(GoldenDeviceScenario child, Device device) {
+    return child.orientation == Orientation.portrait ? device.size : device.size.flipped;
+  }
+
+  Size _getScenarioSize(Size size) {
     const horizontalPadding = _horizontalScenarioPadding * 2;
     const verticalPadding = _verticalScenarioPadding * 2;
     const border = _borderWidth * 2;
 
-    return Size(device.size.width + horizontalPadding + border, device.size.height + verticalPadding + border);
+    return Size(size.width + horizontalPadding + border, size.height + verticalPadding + border);
   }
 }
 
@@ -67,12 +75,14 @@ class GoldenDeviceScenario extends StatefulWidget {
     this.name,
     this.setUp,
     this.devices,
+    this.orientation = Orientation.portrait,
   });
 
   final ValueGetter<Widget> widget;
   final String? name;
   final SetUp? setUp;
   final List<Device>? devices;
+  final Orientation orientation;
 
   @override
   State<GoldenDeviceScenario> createState() => _GoldenDeviceScenarioState();
@@ -105,6 +115,7 @@ class _GoldenDeviceScenarioState extends State<GoldenDeviceScenario> {
             .map((e) => _DeviceTestWidget(
                   device: e,
                   name: _createName(e),
+                  orientation: widget.orientation,
                   child: _built!,
                 ))
             .toList());
@@ -126,11 +137,13 @@ class _DeviceTestWidget extends StatelessWidget {
   final String name;
   final Device device;
   final Widget child;
+  final Orientation orientation;
 
   const _DeviceTestWidget({
     required this.device,
     required this.child,
     required this.name,
+    required this.orientation,
   });
 
   @override
@@ -150,7 +163,7 @@ class _DeviceTestWidget extends StatelessWidget {
             children: [
               SizedBox(
                 height: 20,
-                width: device.size.width,
+                width: orientation == Orientation.portrait ? device.size.width : device.size.height,
                 child: Text(
                   name,
                   maxLines: 1,
@@ -161,7 +174,7 @@ class _DeviceTestWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              _DeviceMediaQueryWrapper(device: device, child: child),
+              _DeviceMediaQueryWrapper(device: device, orientation: orientation, child: child),
             ],
           ),
         ),
@@ -174,17 +187,27 @@ class _DeviceMediaQueryWrapper extends StatelessWidget {
   const _DeviceMediaQueryWrapper({
     required this.device,
     required this.child,
+    required this.orientation,
   });
 
   final Device device;
+  final Orientation orientation;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.maybeOf(context) ?? const MediaQueryData();
+    final deviceSize = orientation == Orientation.portrait ? device.size : device.size.flipped;
     final mergedMediaQuery = mediaQuery.copyWith(
-      size: device.size,
-      padding: device.safeArea,
+      size: deviceSize,
+      padding: orientation == Orientation.portrait
+          ? device.safeArea
+          : EdgeInsets.fromLTRB(
+              device.safeArea.top,
+              device.safeArea.right,
+              device.safeArea.bottom,
+              device.safeArea.left,
+            ),
       platformBrightness: device.brightness,
       devicePixelRatio: device.devicePixelRatio,
       textScaleFactor: device.textScale,
@@ -193,8 +216,8 @@ class _DeviceMediaQueryWrapper extends StatelessWidget {
     return MediaQuery(
       data: mergedMediaQuery,
       child: SizedBox(
-        width: device.size.width,
-        height: device.size.height,
+        width: deviceSize.width,
+        height: deviceSize.height,
         child: child,
       ),
     );
