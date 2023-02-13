@@ -267,4 +267,9 @@ class BlockedTextCanvasAdapter implements Canvas {
 
   @override
   Float64List getTransform() => parent.getTransform();
+
+  @override
+  void restoreToCount(int count) {
+    parent.restoreToCount(count);
+  }
 }
