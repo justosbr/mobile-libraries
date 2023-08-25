@@ -124,8 +124,8 @@ class FlutterGoldenTestRunner extends GoldenTestRunner {
       debugDisableShadows = mementoDebugDisableShadows;
 
       await tester.binding.setSurfaceSize(null);
-      tester.binding.window.clearPhysicalSizeTestValue();
-      tester.binding.window.clearDevicePixelRatioTestValue();
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
     }
   }
 
