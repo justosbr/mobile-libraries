@@ -10,7 +10,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:meta/meta.dart';
 
 import 'aurum_test_variant.dart';
-import 'golden_test_runner.dart';
+import 'golden_test_runner.dart'
+  if (dart.library.html) 'golden_test_runner_web.dart';
 
 /// Default golden test runner which uses the flutter test framework.
 const defaultGoldenTestRunner = FlutterGoldenTestRunner();
