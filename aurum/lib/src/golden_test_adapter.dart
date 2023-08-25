@@ -14,13 +14,13 @@ import 'utilities.dart';
 /// The function signature of Flutter test's `testWidgets` function.
 typedef TestWidgetsFn = FutureOr<void> Function(
   String description,
-  Future<void> Function(WidgetTester) callback, {
+  WidgetTesterCallback callback, {
   bool? skip,
   Timeout? timeout,
-  Duration? initialTimeout,
   bool semanticsEnabled,
   TestVariant<Object?> variant,
   dynamic tags,
+  int? retry,
 });
 
 /// The signature of the `tearDown` and `setUp` test functions.
@@ -231,8 +231,8 @@ class FlutterGoldenTestAdapter extends GoldenTestAdapter {
     required Widget widget,
     required List<Device> devices,
   }) async {
-    tester.binding.window.devicePixelRatioTestValue = 1.0;
-    tester.binding.window.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.platformDispatcher.textScaleFactorTestValue = textScaleFactor;
 
     await pumpWidget(
       tester,
@@ -278,7 +278,7 @@ class FlutterGoldenTestAdapter extends GoldenTestAdapter {
     final childSize = tester.getSize(find.byKey(childKey));
 
     await tester.binding.setSurfaceSize(childSize);
-    tester.binding.window.physicalSizeTestValue = childSize;
+    tester.view.physicalSize = childSize;
 
     await tester.pump();
   }
@@ -383,7 +383,7 @@ class FlutterGoldenTestWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQuery.maybeOf(context) ?? MediaQueryData.fromWindow(WidgetsBinding.instance.window),
+      data: MediaQuery.maybeOf(context) ?? MediaQueryData.fromView(View.of(context)),
       child: _LocalizationWrapper(
         child: Theme(
           data: _resolveThemeOf(context),
